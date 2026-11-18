@@ -2,7 +2,7 @@
 <html lang="pt-BR" class="h-full bg-[#0a0a0a]">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BRAVE BURGUER HOUSE - Pedidos & Delivery</title>
   
   <!-- Tailwind CSS CDN -->
@@ -50,6 +50,12 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #0a0a0a;
       color: #f5ebd6;
+      touch-action: manipulation;
+    }
+    @media screen and (max-width: 768px) {
+      input, textarea, select {
+        font-size: 16px !important;
+      }
     }
     .font-display {
       font-family: 'Oswald', sans-serif;
@@ -93,40 +99,40 @@
   <!-- PUBLIC CUSTOMER NAVBAR (FIXED ON TOP - BRAVE BURGUER HOUSE) -->
   <!-- ========================================================================= -->
   <header id="public-header" class="bg-[#0d0d0f]/95 backdrop-blur-md border-b border-zinc-800/90 fixed top-0 left-0 right-0 z-40 shadow-xl shadow-black/50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-2">
         
         <!-- Logo / Store Title -->
-        <div class="flex items-center gap-3 cursor-pointer group" onclick="resetCustomerView()">
-          <img id="header-logo-img" src="logo.jpg" alt="Brave Burguer House" onerror="this.onerror=null;this.src='https://placehold.co/120x120/0a0a0a/f97316?text=BRAVE';" class="w-11 h-11 rounded-xl object-cover border border-orange-500/40 shadow-lg bg-black group-hover:border-orange-500 transition">
-          <div>
-            <span class="font-display font-bold text-xl tracking-wide text-[#f5ebd6] block leading-none uppercase" id="nav-store-name">BRAVE <span class="text-brand-500">BURGUER</span></span>
-            <span class="text-[10px] text-zinc-400 font-semibold tracking-widest uppercase">Burguer House</span>
+        <div class="flex items-center gap-2.5 sm:gap-3 cursor-pointer group min-w-0 flex-1" onclick="resetCustomerView()">
+          <img id="header-logo-img" src="logo.jpg" alt="Brave Burguer House" onerror="this.onerror=null;this.src='https://placehold.co/120x120/0a0a0a/f97316?text=BRAVE';" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover border border-orange-500/40 shadow-lg bg-black group-hover:border-orange-500 transition shrink-0">
+          <div class="min-w-0 flex-1">
+            <span class="font-display font-bold text-base sm:text-xl tracking-wide text-[#f5ebd6] block leading-tight uppercase truncate" id="nav-store-name">BRAVE <span class="text-brand-500">BURGUER</span></span>
+            <span class="text-[9px] sm:text-[10px] text-zinc-400 font-semibold tracking-widest uppercase block truncate">Burguer House</span>
           </div>
         </div>
 
         <!-- Customer Utilities (Isolated to this device) -->
-        <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <!-- Active Track Button -->
-          <button id="btn-active-track" onclick="openTrackModal()" class="hidden bg-brand-600 hover:bg-brand-500 text-white font-bold px-3 py-2 rounded-xl text-xs transition shadow-md flex items-center gap-2 pulse-ring">
-            <i class="fa-solid fa-fire text-sm"></i>
-            <span class="hidden sm:inline">Acompanhar Pedido</span>
+          <button id="btn-active-track" onclick="openTrackModal()" class="hidden bg-brand-600 hover:bg-brand-500 text-white font-bold p-2 sm:px-3 sm:py-2 rounded-xl text-xs transition shadow-md flex items-center gap-1.5 pulse-ring shrink-0" title="Acompanhar Pedido">
+            <i class="fa-solid fa-fire text-xs sm:text-sm"></i>
+            <span class="hidden md:inline">Acompanhar Pedido</span>
           </button>
 
           <!-- History -->
-          <button onclick="openHistoryModal()" class="p-2.5 text-zinc-400 hover:text-[#f5ebd6] hover:bg-zinc-800/80 rounded-xl transition" title="Meus Pedidos">
-            <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+          <button onclick="openHistoryModal()" class="p-2 sm:p-2.5 text-zinc-400 hover:text-[#f5ebd6] hover:bg-zinc-800/80 rounded-xl transition shrink-0" title="Meus Pedidos">
+            <i class="fa-solid fa-clock-rotate-left text-base sm:text-lg"></i>
           </button>
 
           <!-- Cart Button -->
-          <button onclick="openCartDrawer()" class="relative flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-3.5 sm:px-4 py-2.5 rounded-xl text-sm font-bold transition shadow-lg shadow-brand-600/25 active:scale-95">
+          <button onclick="openCartDrawer()" class="relative flex items-center gap-1.5 sm:gap-2 bg-brand-600 hover:bg-brand-500 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition shadow-lg shadow-brand-600/25 active:scale-95 shrink-0">
             <i class="fa-solid fa-basket-shopping"></i>
             <span class="hidden sm:inline">Carrinho</span>
-            <span id="cart-badge" class="bg-[#0a0a0a] text-[#f5ebd6] text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">0</span>
+            <span id="cart-badge" class="bg-[#0a0a0a] text-[#f5ebd6] text-[11px] sm:text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">0</span>
           </button>
 
-          <!-- Direct Admin Access Trigger -->
-          <button onclick="openMerchantLoginModal()" class="p-2 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/80 rounded-xl transition ml-1" title="Acesso Lojista">
+          <!-- Direct Admin Access Trigger (Hidden on small mobile to avoid crowding; available in footer) -->
+          <button onclick="openMerchantLoginModal()" class="hidden sm:inline-flex p-2 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/80 rounded-xl transition ml-1 shrink-0" title="Acesso Lojista">
             <i class="fa-solid fa-lock text-sm"></i>
           </button>
         </div>
@@ -180,38 +186,38 @@
   <!-- ========================================================================= -->
   <!-- 1. PUBLIC CUSTOMER VIEW (BRAVE BURGUER HOUSE DARK SMOKEHOUSE) -->
   <!-- ========================================================================= -->
-  <main id="view-customer" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <main id="view-customer" class="flex-grow max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5 sm:space-y-6">
     
     <!-- Hero Banner -->
-    <div id="store-banner" class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#161618] via-[#111113] to-[#0a0a0a] border border-zinc-800/90 text-[#f5ebd6] p-6 md:p-8 shadow-2xl ember-glow">
+    <div id="store-banner" class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#161618] via-[#111113] to-[#0a0a0a] border border-zinc-800/90 text-[#f5ebd6] p-5 sm:p-6 md:p-8 shadow-2xl ember-glow">
       <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-15 mix-blend-luminosity"></div>
       <div class="absolute -right-24 -bottom-24 w-72 h-72 rounded-full bg-brand-600/20 blur-3xl pointer-events-none"></div>
       
-      <div class="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center gap-4 sm:gap-6">
         <div class="shrink-0 flex justify-center md:justify-start">
-          <img id="banner-logo-img" src="logo.jpg" alt="Brave Burguer House" onerror="this.onerror=null;this.src='https://placehold.co/300x300/0a0a0a/f97316?text=BRAVE+BURGUER';" class="w-28 h-28 md:w-36 md:h-36 rounded-3xl object-cover border-2 border-orange-500/40 shadow-2xl bg-black">
+          <img id="banner-logo-img" src="logo.jpg" alt="Brave Burguer House" onerror="this.onerror=null;this.src='https://placehold.co/300x300/0a0a0a/f97316?text=BRAVE+BURGUER';" class="w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-2xl sm:rounded-3xl object-cover border-2 border-orange-500/40 shadow-2xl bg-black">
         </div>
 
-        <div class="space-y-2.5 text-center md:text-left">
-          <div class="flex items-center justify-center md:justify-start gap-2.5 flex-wrap">
-            <span id="store-status-badge" class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+        <div class="space-y-2 sm:space-y-2.5 text-center md:text-left">
+          <div class="flex items-center justify-center md:justify-start gap-2 flex-wrap">
+            <span id="store-status-badge" class="px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
               Loja Aberta
             </span>
-            <span class="text-xs text-zinc-300 flex items-center gap-1.5 bg-zinc-900/90 border border-zinc-800 px-3 py-1 rounded-full">
+            <span class="text-[11px] sm:text-xs text-zinc-300 flex items-center gap-1.5 bg-zinc-900/90 border border-zinc-800 px-2.5 sm:px-3 py-1 rounded-full">
               <i class="fa-solid fa-clock text-brand-500"></i>
               <span id="store-time-display">30-45 min</span>
             </span>
-            <span class="text-xs text-zinc-300 flex items-center gap-1.5 bg-zinc-900/90 border border-zinc-800 px-3 py-1 rounded-full">
+            <span class="text-[11px] sm:text-xs text-zinc-300 flex items-center gap-1.5 bg-zinc-900/90 border border-zinc-800 px-2.5 sm:px-3 py-1 rounded-full">
               <i class="fa-solid fa-motorcycle text-brand-500"></i>
               Taxa: R$ <span id="store-fee-display">5,00</span>
             </span>
           </div>
           
-          <h1 id="store-name-display" class="font-display text-3xl md:text-5xl font-bold tracking-wide uppercase text-[#f5ebd6]">
+          <h1 id="store-name-display" class="font-display text-2xl sm:text-3xl md:text-5xl font-bold tracking-wide uppercase text-[#f5ebd6] leading-tight">
             BRAVE BURGUER HOUSE
           </h1>
-          <p class="text-zinc-400 text-sm max-w-2xl leading-relaxed">
+          <p class="text-zinc-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
             Blends artesanais grelhados no fogo alto, bacon defumado crocante, queijo derretido e acompanhamentos rústicos feitos na brasa.
           </p>
         </div>
@@ -768,11 +774,11 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-[11px] font-bold text-zinc-400 uppercase mb-1">Nome Completo</label>
-              <input type="text" id="chk-name" required placeholder="João Silva" class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <input type="text" id="chk-name" required class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
             </div>
             <div>
               <label class="block text-[11px] font-bold text-zinc-400 uppercase mb-1">WhatsApp / Telefone</label>
-              <input type="tel" id="chk-phone" required placeholder="(16) 99999-9999" class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <input type="tel" id="chk-phone" required maxlength="16" oninput="applyPhoneMask(this)" placeholder="(99) 9 9999-9999" class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
             </div>
           </div>
         </div>
@@ -781,21 +787,21 @@
           <h4 class="text-xs font-extrabold text-zinc-300 uppercase tracking-wider">Endereço de Entrega</h4>
           <div class="grid grid-cols-3 gap-3">
             <div class="col-span-2">
-              <label class="block text-[11px] font-bold text-zinc-400 uppercase mb-1">Rua / Avenida</label>
-              <input type="text" id="chk-street" placeholder="Rua Principal" class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <label class="block text-[11px] font-bold text-zinc-400 uppercase mb-1">Rua / Avenida <span class="text-brand-500">*</span></label>
+              <input type="text" id="chk-street" required placeholder="Rua Principal" class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-zinc-400 uppercase mb-1">Número</label>
-              <input type="text" id="chk-number" placeholder="100" class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <label class="block text-[11px] font-bold text-zinc-400 uppercase mb-1">Número <span class="text-brand-500">*</span></label>
+              <input type="text" id="chk-number" required placeholder="100" class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-[11px] font-bold text-zinc-400 uppercase mb-1">Bairro</label>
-              <input type="text" id="chk-neighborhood" placeholder="Centro" class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <label class="block text-[11px] font-bold text-zinc-400 uppercase mb-1">Bairro <span class="text-brand-500">*</span></label>
+              <input type="text" id="chk-neighborhood" required placeholder="Centro" class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-zinc-400 uppercase mb-1">Complemento</label>
+              <label class="block text-[11px] font-bold text-zinc-400 uppercase mb-1">Complemento (Opcional)</label>
               <input type="text" id="chk-complement" placeholder="Apt / Bloco" class="w-full px-3 py-2 text-sm bg-zinc-900 border border-zinc-700 text-[#f5ebd6] rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
             </div>
           </div>
@@ -1962,7 +1968,11 @@
         const savedCustomer = JSON.parse(localStorage.getItem('sb_customer_info'));
         if (savedCustomer) {
           if (savedCustomer.name) document.getElementById('chk-name').value = savedCustomer.name;
-          if (savedCustomer.phone) document.getElementById('chk-phone').value = savedCustomer.phone;
+          if (savedCustomer.phone) {
+            const phoneEl = document.getElementById('chk-phone');
+            phoneEl.value = savedCustomer.phone;
+            applyPhoneMask(phoneEl);
+          }
           if (savedCustomer.street) document.getElementById('chk-street').value = savedCustomer.street;
           if (savedCustomer.number) document.getElementById('chk-number').value = savedCustomer.number;
           if (savedCustomer.neighborhood) document.getElementById('chk-neighborhood').value = savedCustomer.neighborhood;
@@ -1971,9 +1981,32 @@
       } catch (e) {}
 
       closeCartDrawer();
+      const selectedOrderType = document.querySelector('input[name="orderType"]:checked')?.value || 'DELIVERY';
+      toggleOrderType(selectedOrderType);
       document.getElementById('modal-checkout').classList.remove('hidden');
       document.getElementById('modal-checkout').classList.add('flex');
       updateBodyScrollLock();
+    }
+
+    function applyPhoneMask(input) {
+      let v = input.value.replace(/\D/g, '');
+      if (v.length > 11) v = v.slice(0, 11);
+
+      if (v.length === 0) {
+        input.value = '';
+      } else if (v.length <= 2) {
+        input.value = `(${v}`;
+      } else if (v.length <= 3) {
+        input.value = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+      } else if (v.length <= 7) {
+        input.value = `(${v.slice(0, 2)}) ${v.slice(2, 3)} ${v.slice(3)}`;
+      } else if (v.length <= 10) {
+        // Telefone fixo (8 dígitos após DDD)
+        input.value = `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
+      } else {
+        // Celular com 9º dígito separado: (DD) 9 9999-9999
+        input.value = `(${v.slice(0, 2)}) ${v.slice(2, 3)} ${v.slice(3, 7)}-${v.slice(7, 11)}`;
+      }
     }
 
     function closeCheckoutModal() {
@@ -1984,8 +2017,21 @@
 
     function toggleOrderType(val) {
       const addressBox = document.getElementById('address-fields');
-      if (val === 'TAKEOUT') addressBox.classList.add('hidden');
-      else addressBox.classList.remove('hidden');
+      const streetInput = document.getElementById('chk-street');
+      const numberInput = document.getElementById('chk-number');
+      const neighborhoodInput = document.getElementById('chk-neighborhood');
+
+      if (val === 'TAKEOUT') {
+        addressBox.classList.add('hidden');
+        if (streetInput) streetInput.required = false;
+        if (numberInput) numberInput.required = false;
+        if (neighborhoodInput) neighborhoodInput.required = false;
+      } else {
+        addressBox.classList.remove('hidden');
+        if (streetInput) streetInput.required = true;
+        if (numberInput) numberInput.required = true;
+        if (neighborhoodInput) neighborhoodInput.required = true;
+      }
     }
 
     function togglePaymentMethod(val) {
@@ -2149,7 +2195,7 @@
 
       for (let i = 0; i <= activeIndex; i++) {
         if (steps[i] && steps[i].children.length >= 2) {
-          steps[i].children[0].className = "w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold shadow ring-4 ring-brand-600/30";
+          steps[i].children[0].className = "w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold shadow ring-4 ring-brand-500/30";
           steps[i].children[1].className = "text-[10px] font-extrabold text-brand-500";
         }
       }
