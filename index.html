@@ -154,7 +154,7 @@
           </div>
           <div>
             <span class="font-extrabold text-base tracking-tight text-white block leading-none">Painel do Lojista</span>
-            <span class="text-[10px] text-gray-400 font-medium">Conectado ao Supabase</span>
+            <span class="text-[10px] text-gray-400 font-medium">Conectado ao Supabase & Mercado Pago</span>
           </div>
         </div>
 
@@ -541,7 +541,7 @@
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1 uppercase">Chave PIX da Loja</label>
+            <label class="block text-xs font-bold text-gray-700 mb-1 uppercase">Chave PIX Reserva / Contingência</label>
             <input type="text" id="setting-pix-key" required placeholder="CNPJ, E-mail ou Telefone" class="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
           </div>
         </div>
@@ -812,7 +812,7 @@
           <div class="grid grid-cols-3 gap-2">
             <label class="flex flex-col items-center justify-center p-2.5 border border-zinc-700 bg-zinc-900 rounded-xl cursor-pointer text-xs font-bold text-zinc-200 hover:bg-zinc-800 text-center">
               <input type="radio" name="paymentMethod" value="PIX" checked onchange="togglePaymentMethod(this.value)" class="mb-1 text-brand-600 focus:ring-brand-500">
-              <i class="fa-solid fa-qrcode text-emerald-400 mb-1"></i> PIX
+              <i class="fa-solid fa-qrcode text-emerald-400 mb-1"></i> PIX Instantâneo
             </label>
             <label class="flex flex-col items-center justify-center p-2.5 border border-zinc-700 bg-zinc-900 rounded-xl cursor-pointer text-xs font-bold text-zinc-200 hover:bg-zinc-800 text-center">
               <input type="radio" name="paymentMethod" value="CARD" onchange="togglePaymentMethod(this.value)" class="mb-1 text-brand-600 focus:ring-brand-500">
@@ -828,16 +828,21 @@
             <label class="block text-xs font-bold text-amber-300 mb-1">Precisa de troco para quanto?</label>
             <input type="number" id="chk-cash-change" placeholder="Ex: 50,00" class="w-full px-3 py-1.5 text-sm bg-zinc-900 border border-amber-500/40 text-[#f5ebd6] rounded-lg focus:outline-none">
           </div>
+
+          <div id="pix-cpf-box" class="mt-2 bg-emerald-950/30 p-3 rounded-xl border border-emerald-600/30">
+            <label class="block text-[11px] font-bold text-emerald-300 uppercase mb-1">CPF do Pagador (Opcional - agiliza emissão do QR Code)</label>
+            <input type="text" id="chk-cpf" maxlength="14" oninput="applyCpfMask(this)" placeholder="000.000.000-00" class="w-full px-3 py-1.5 text-sm bg-zinc-900 border border-emerald-500/30 text-[#f5ebd6] rounded-lg focus:outline-none">
+          </div>
         </div>
 
-        <button type="submit" class="w-full mt-4 bg-brand-600 hover:bg-brand-500 text-white font-extrabold py-3.5 rounded-xl text-base transition shadow-lg shadow-brand-600/30 uppercase tracking-wide font-display">
-          Confirmar e Enviar Pedido
+        <button type="submit" id="btn-submit-order" class="w-full mt-4 bg-brand-600 hover:bg-brand-500 text-white font-extrabold py-3.5 rounded-xl text-base transition shadow-lg shadow-brand-600/30 uppercase tracking-wide font-display flex items-center justify-center gap-2">
+          <span>Confirmar e Enviar Pedido</span>
         </button>
       </form>
     </div>
   </div>
 
-  <!-- 5. REALTIME TRACKING MODAL -->
+  <!-- 5. REALTIME TRACKING MODAL (WITH DYNAMIC MERCADO PAGO PIX) -->
   <div id="modal-track" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overscroll-contain">
     <div class="bg-[#161618] border border-zinc-800 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] text-[#f5ebd6]">
       <div class="p-5 bg-[#0d0d0f] border-b border-zinc-800 flex items-center justify-between">
@@ -873,16 +878,64 @@
           </div>
         </div>
 
+        <!-- PIX DYNAMIC MERCADO PAGO BOX -->
         <div id="track-pix-box" class="hidden bg-emerald-950/40 border border-emerald-600/40 rounded-2xl p-4 text-center space-y-3">
           <div class="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm">
-            <i class="fa-solid fa-qrcode text-lg"></i> Pagamento PIX Pendente
+            <i class="fa-solid fa-qrcode text-lg"></i>
+            <span id="track-pix-title">Pague via PIX Instantâneo</span>
           </div>
-          <div class="w-32 h-32 mx-auto bg-white p-2 rounded-xl border border-emerald-500/40 flex items-center justify-center">
-            <div class="w-full h-full bg-zinc-950 rounded flex items-center justify-center text-[#f5ebd6] text-[10px] font-mono p-1 text-center">
-              [QR-CODE PIX]
+
+          <!-- Loading state while generating QR Code -->
+          <div id="track-pix-loading" class="hidden py-6 space-y-2">
+            <i class="fa-solid fa-spinner fa-spin text-2xl text-emerald-400"></i>
+            <p class="text-xs text-zinc-300">Gerando QR Code PIX seguro...</p>
+          </div>
+
+          <!-- Dynamic QR Code Image -->
+          <div id="track-pix-qr-wrapper" class="hidden space-y-3">
+            <div class="w-44 h-44 mx-auto bg-white p-2.5 rounded-2xl border-2 border-emerald-500/50 shadow-lg flex items-center justify-center">
+              <img id="track-pix-qr-img" src="" alt="QR Code PIX" class="w-full h-full object-contain rounded">
+            </div>
+
+            <div class="space-y-1.5">
+              <p class="text-[11px] text-zinc-400">Ou copie o código <strong>PIX Copia e Cola</strong> abaixo:</p>
+              <div class="flex items-center gap-1.5 bg-zinc-950 border border-zinc-800 rounded-xl p-1.5">
+                <input type="text" id="track-pix-copiacola" readonly class="w-full bg-transparent text-[11px] text-zinc-300 px-2 focus:outline-none font-mono truncate">
+                <button type="button" onclick="copyPixCode()" class="shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1">
+                  <i class="fa-regular fa-copy"></i>
+                  <span>Copiar</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-center gap-2 text-[11px] text-emerald-300/90 pt-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span>Aguardando confirmação automática do banco...</span>
             </div>
           </div>
-          <p class="text-xs text-zinc-300">Chave PIX: <strong id="track-pix-key" class="text-[#f5ebd6] select-all"></strong></p>
+
+          <!-- Fallback Static Key if API fails -->
+          <div id="track-pix-fallback" class="hidden space-y-2.5">
+            <p id="track-pix-error-reason" class="text-[11px] text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2.5 py-1.5 rounded-lg"></p>
+            <p class="text-xs text-zinc-300">Chave PIX: <strong id="track-pix-key" class="text-[#f5ebd6] select-all"></strong></p>
+            <div class="flex items-center justify-center gap-2 flex-wrap">
+              <button type="button" onclick="copyFallbackPixKey()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-2 rounded-xl text-xs transition">
+                <i class="fa-regular fa-copy mr-1"></i> Copiar Chave PIX
+              </button>
+              <button type="button" onclick="retryCurrentOrderPix()" class="bg-zinc-800 hover:bg-zinc-700 text-[#f5ebd6] border border-zinc-700 font-bold px-3.5 py-2 rounded-xl text-xs transition">
+                <i class="fa-solid fa-rotate-right mr-1"></i> Tentar Gerar QR Code
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PIX APPROVED BADGE -->
+        <div id="track-pix-approved-box" class="hidden bg-emerald-500/15 border border-emerald-500/40 rounded-2xl p-4 text-center space-y-1">
+          <div class="flex items-center justify-center gap-2 text-emerald-400 font-extrabold text-sm">
+            <i class="fa-solid fa-circle-check text-lg"></i>
+            <span>PIX Pago e Confirmado!</span>
+          </div>
+          <p class="text-xs text-zinc-300">Seu pedido já foi liberado automaticamente para a brasa.</p>
         </div>
 
         <div class="bg-zinc-900 rounded-2xl p-4 space-y-3 border border-zinc-800">
@@ -1132,9 +1185,8 @@
     };
 
     let activeOrderChannel = null;
-
-    // Body scroll locking helper to prevent background scrolling on mobile
     let savedScrollY = 0;
+    let isGeneratingPixForOrderId = null;
 
     function checkAnyModalOpen() {
       const modalIds = [
@@ -1295,7 +1347,7 @@
             saveDataLocally('products');
           }
 
-          // 4. Orders
+          // 4. Orders (Including Mercado Pago PIX fields)
           const { data: dbOrders, error: ordErr } = await _supabase.from('orders').select('*').order('created_at', { ascending: false });
           if (!ordErr && Array.isArray(dbOrders)) {
             const previousCount = state.orders ? state.orders.length : 0;
@@ -1313,8 +1365,10 @@
                   orderItems = matched.items;
                 }
 
+                const shortCode = o.order_code || o.id.substring(0, 6).toUpperCase();
+
                 return {
-                  id: o.id.substring(0, 6).toUpperCase(),
+                  id: shortCode,
                   dbId: o.id,
                   createdAt: o.created_at,
                   customerName: o.customer_name,
@@ -1322,6 +1376,10 @@
                   address: o.delivery_address || 'Retirada',
                   orderType: o.delivery_type === 'delivery' ? 'DELIVERY' : 'TAKEOUT',
                   paymentMethod: (o.payment_method || 'PIX').toUpperCase(),
+                  paymentStatus: o.payment_status || (matched ? matched.paymentStatus : 'pending'),
+                  mpPaymentId: o.mp_payment_id || (matched ? matched.mpPaymentId : null),
+                  pixQrCode: o.pix_qr_code || (matched ? matched.pixQrCode : null),
+                  pixQrCodeBase64: o.pix_qr_code_base64 || (matched ? matched.pixQrCodeBase64 : null),
                   cashChange: o.change_for !== undefined && o.change_for !== null ? o.change_for : (matched ? matched.cashChange : null),
                   items: orderItems,
                   subtotal: parseFloat(o.subtotal || 0),
@@ -2036,118 +2094,259 @@
 
     function togglePaymentMethod(val) {
       const cashBox = document.getElementById('cash-change-box');
+      const pixCpfBox = document.getElementById('pix-cpf-box');
       if (val === 'CASH') cashBox.classList.remove('hidden');
       else cashBox.classList.add('hidden');
+
+      if (pixCpfBox) {
+        if (val === 'PIX') pixCpfBox.classList.remove('hidden');
+        else pixCpfBox.classList.add('hidden');
+      }
+    }
+
+    function applyCpfMask(input) {
+      let v = input.value.replace(/\D/g, '');
+      if (v.length > 11) v = v.slice(0, 11);
+      if (v.length <= 3) input.value = v;
+      else if (v.length <= 6) input.value = `${v.slice(0, 3)}.${v.slice(3)}`;
+      else if (v.length <= 9) input.value = `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6)}`;
+      else input.value = `${v.slice(0, 3)}.${v.slice(3, 6)}.${v.slice(6, 9)}-${v.slice(9, 11)}`;
+    }
+
+    // Generate Mercado Pago Dynamic PIX via Supabase Edge Function
+    async function generateMercadoPagoPix(order) {
+      isGeneratingPixForOrderId = order.id;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+      try {
+        const cpfEl = document.getElementById('chk-cpf');
+        const customerCpf = cpfEl ? cpfEl.value.replace(/\D/g, '') : '';
+
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/mercadopago-pix`, {
+          method: 'POST',
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'apikey': SUPABASE_ANON_KEY
+          },
+          body: JSON.stringify({
+            orderCode: order.id,
+            amount: order.total,
+            customerName: order.customerName,
+            customerCpf: customerCpf || undefined
+          })
+        });
+
+        clearTimeout(timeoutId);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.error) {
+          throw new Error(data.error || `Erro HTTP ${response.status} ao gerar PIX`);
+        }
+
+        order.mpPaymentId = data.paymentId ? String(data.paymentId) : null;
+        order.pixQrCode = data.qrCode || null;
+        order.pixQrCodeBase64 = data.qrCodeBase64 || null;
+        order.pixErrorReason = null;
+        order.paymentStatus = 'pending';
+        saveDataLocally('orders');
+
+        return true;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        order.pixErrorReason = err.name === 'AbortError'
+          ? 'Tempo limite excedido ao conectar com o Mercado Pago.'
+          : (err.message || 'Não foi possível gerar o QR Code dinâmico agora.');
+        saveDataLocally('orders');
+        console.warn('Erro ao gerar PIX automático no Mercado Pago:', err);
+        return false;
+      } finally {
+        isGeneratingPixForOrderId = null;
+      }
+    }
+
+    async function retryCurrentOrderPix() {
+      const orderId = document.getElementById('track-order-id')?.innerText.replace('#', '').trim();
+      const order = state.orders.find(o => o.id === orderId);
+      if (!order) return;
+
+      order.pixErrorReason = null;
+      isGeneratingPixForOrderId = order.id;
+      openTrackModal(order.id);
+      await generateMercadoPagoPix(order);
+      openTrackModal(order.id);
+    }
+
+    function copyPixCode() {
+      const input = document.getElementById('track-pix-copiacola');
+      if (!input || !input.value) return;
+      input.select();
+      try {
+        document.execCommand('copy');
+        showToast('Código PIX Copia e Cola copiado!', 'success');
+      } catch (e) {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(input.value).then(() => {
+            showToast('Código PIX Copia e Cola copiado!', 'success');
+          });
+        }
+      }
+    }
+
+    function copyFallbackPixKey() {
+      const keyEl = document.getElementById('track-pix-key');
+      if (!keyEl || !keyEl.innerText) return;
+      const tempInput = document.createElement('input');
+      tempInput.value = keyEl.innerText;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand('copy');
+        showToast('Chave PIX copiada!', 'success');
+      } catch (e) {}
+      document.body.removeChild(tempInput);
     }
 
     async function handleConfirmOrder(e) {
       e.preventDefault();
 
-      const orderType = document.querySelector('input[name="orderType"]:checked').value;
-      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-      
-      const customerName = document.getElementById('chk-name').value.trim();
-      const customerPhone = document.getElementById('chk-phone').value.trim();
-
-      const street = document.getElementById('chk-street').value.trim();
-      const num = document.getElementById('chk-number').value.trim();
-      const neigh = document.getElementById('chk-neighborhood').value.trim();
-      const comp = document.getElementById('chk-complement').value.trim();
-
-      let address = 'Retirada no Balcão';
-      if (orderType === 'DELIVERY') {
-        address = `${street}, Nº ${num} - ${neigh} ${comp ? '(' + comp + ')' : ''}`;
-      }
-
-      let rawCashChange = null;
-      if (paymentMethod === 'CASH') {
-        const cashInput = document.getElementById('chk-cash-change');
-        if (cashInput && cashInput.value) {
-          rawCashChange = cashInput.value.trim().replace(',', '.');
-        }
+      const submitBtn = document.getElementById('btn-submit-order');
+      const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Processando Pedido...</span>`;
       }
 
       try {
-        localStorage.setItem('sb_customer_info', JSON.stringify({
-          name: customerName,
-          phone: customerPhone,
-          street,
-          number: num,
-          neighborhood: neigh,
-          complement: comp
-        }));
-      } catch (err) {}
+        const orderType = document.querySelector('input[name="orderType"]:checked').value;
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        
+        const customerName = document.getElementById('chk-name').value.trim();
+        const customerPhone = document.getElementById('chk-phone').value.trim();
 
-      const totals = calculateCartTotals();
+        const street = document.getElementById('chk-street').value.trim();
+        const num = document.getElementById('chk-number').value.trim();
+        const neigh = document.getElementById('chk-neighborhood').value.trim();
+        const comp = document.getElementById('chk-complement').value.trim();
 
-      const newOrder = {
-        id: ('P' + Math.floor(1000 + Math.random() * 9000)),
-        dbId: null,
-        createdAt: new Date().toISOString(),
-        customerName,
-        customerPhone,
-        address,
-        orderType,
-        paymentMethod,
-        cashChange: rawCashChange,
-        items: [...state.cart],
-        subtotal: totals.subtotal,
-        deliveryFee: orderType === 'DELIVERY' ? totals.deliveryFee : 0,
-        discount: totals.discount,
-        total: orderType === 'DELIVERY' ? totals.total : (totals.subtotal - totals.discount),
-        status: 'RECEBIDO'
-      };
+        let address = 'Retirada no Balcão';
+        if (orderType === 'DELIVERY') {
+          address = `${street}, Nº ${num} - ${neigh} ${comp ? '(' + comp + ')' : ''}`;
+        }
 
-      if (_supabase) {
+        let rawCashChange = null;
+        if (paymentMethod === 'CASH') {
+          const cashInput = document.getElementById('chk-cash-change');
+          if (cashInput && cashInput.value) {
+            rawCashChange = cashInput.value.trim().replace(',', '.');
+          }
+        }
+
         try {
-          const orderPayload = {
-            customer_name: customerName,
-            customer_phone: customerPhone,
-            delivery_type: orderType.toLowerCase(),
-            delivery_address: address,
-            subtotal: totals.subtotal,
-            delivery_fee: orderType === 'DELIVERY' ? totals.deliveryFee : 0,
-            discount_amount: totals.discount,
-            total: newOrder.total,
-            payment_method: paymentMethod.toLowerCase(),
-            change_for: newOrder.cashChange,
-            status: 'recebido'
-          };
+          localStorage.setItem('sb_customer_info', JSON.stringify({
+            name: customerName,
+            phone: customerPhone,
+            street,
+            number: num,
+            neighborhood: neigh,
+            complement: comp
+          }));
+        } catch (err) {}
 
-          let { data, error } = await _supabase.from('orders').insert([{ ...orderPayload, items: newOrder.items }]).select();
-          
-          if (error) {
-            const retry = await _supabase.from('orders').insert([orderPayload]).select();
-            if (!retry.error && retry.data) data = retry.data;
-          }
+        const totals = calculateCartTotals();
+        const shortOrderCode = ('P' + Math.floor(1000 + Math.random() * 9000));
 
-          if (data && data.length > 0) {
-            newOrder.dbId = data[0].id;
-            newOrder.id = data[0].id.substring(0, 6).toUpperCase();
+        const newOrder = {
+          id: shortOrderCode,
+          dbId: null,
+          createdAt: new Date().toISOString(),
+          customerName,
+          customerPhone,
+          address,
+          orderType,
+          paymentMethod,
+          paymentStatus: 'pending',
+          mpPaymentId: null,
+          pixQrCode: null,
+          pixQrCodeBase64: null,
+          cashChange: rawCashChange,
+          items: [...state.cart],
+          subtotal: totals.subtotal,
+          deliveryFee: orderType === 'DELIVERY' ? totals.deliveryFee : 0,
+          discount: totals.discount,
+          total: orderType === 'DELIVERY' ? totals.total : (totals.subtotal - totals.discount),
+          status: 'RECEBIDO'
+        };
+
+        if (_supabase) {
+          try {
+            const orderPayload = {
+              customer_name: customerName,
+              customer_phone: customerPhone,
+              delivery_type: orderType.toLowerCase(),
+              delivery_address: address,
+              subtotal: totals.subtotal,
+              delivery_fee: orderType === 'DELIVERY' ? totals.deliveryFee : 0,
+              discount_amount: totals.discount,
+              total: newOrder.total,
+              payment_method: paymentMethod.toLowerCase(),
+              payment_status: 'pending',
+              change_for: newOrder.cashChange,
+              status: 'recebido'
+            };
+
+            let { data, error } = await _supabase.from('orders').insert([{ ...orderPayload, items: newOrder.items }]).select();
+            
+            if (error) {
+              const retry = await _supabase.from('orders').insert([orderPayload]).select();
+              if (!retry.error && retry.data) data = retry.data;
+            }
+
+            if (data && data.length > 0) {
+              newOrder.dbId = data[0].id;
+              newOrder.id = data[0].id.substring(0, 6).toUpperCase();
+              await _supabase.from('orders').update({ order_code: newOrder.id }).eq('id', newOrder.dbId);
+            }
+          } catch (err) {
+            console.warn('Erro ao inserir pedido no Supabase:', err);
           }
-        } catch (err) {
-          console.warn('Erro ao inserir pedido no Supabase:', err);
+        }
+
+        addDeviceOrderId(newOrder.id, newOrder.dbId);
+
+        state.orders.unshift(newOrder);
+        saveDataLocally('orders');
+
+        state.cart = [];
+        state.activeCoupon = null;
+        saveDataLocally('cart');
+        saveDataLocally('activeCoupon');
+        updateCartUI();
+
+        closeCheckoutModal();
+        showToast('Pedido realizado com sucesso!', 'success');
+        
+        renderClientBanner();
+        renderAdminDashboard();
+        renderAdminOrders();
+
+        if (paymentMethod === 'PIX') {
+          isGeneratingPixForOrderId = newOrder.id;
+        }
+
+        openTrackModal(newOrder.id);
+
+        if (paymentMethod === 'PIX') {
+          await generateMercadoPagoPix(newOrder);
+          openTrackModal(newOrder.id);
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnHtml;
         }
       }
-
-      addDeviceOrderId(newOrder.id, newOrder.dbId);
-
-      state.orders.unshift(newOrder);
-      saveDataLocally('orders');
-
-      state.cart = [];
-      state.activeCoupon = null;
-      saveDataLocally('cart');
-      saveDataLocally('activeCoupon');
-      updateCartUI();
-
-      closeCheckoutModal();
-      showToast('Pedido realizado com sucesso!', 'success');
-      
-      renderClientBanner();
-      renderAdminDashboard();
-      renderAdminOrders();
-      openTrackModal(newOrder.id);
     }
 
     function openTrackModal(orderId) {
@@ -2185,6 +2384,7 @@
       let activeIndex = 0;
 
       const statusUpper = (order.status || 'RECEBIDO').toUpperCase();
+      const isPixPaid = (order.paymentStatus || '').toLowerCase() === 'approved';
 
       if (statusUpper === 'RECEBIDO') activeIndex = 0;
       else if (statusUpper === 'PREPARANDO') { progressWidth = '33%'; activeIndex = 1; }
@@ -2201,13 +2401,56 @@
       }
 
       const pixBox = document.getElementById('track-pix-box');
-      if (pixBox) {
-        if (order.paymentMethod === 'PIX' && statusUpper === 'RECEBIDO') {
-          pixBox.classList.remove('hidden');
-          const pixKeyEl = document.getElementById('track-pix-key');
-          if (pixKeyEl) pixKeyEl.innerText = state.settings.pixKey || 'contato@braveburguer.com';
+      const pixApprovedBox = document.getElementById('track-pix-approved-box');
+      const loadingEl = document.getElementById('track-pix-loading');
+      const qrWrapEl = document.getElementById('track-pix-qr-wrapper');
+      const fallbackEl = document.getElementById('track-pix-fallback');
+
+      if (pixBox && pixApprovedBox) {
+        if (order.paymentMethod === 'PIX') {
+          if (isPixPaid || statusUpper !== 'RECEBIDO') {
+            pixBox.classList.add('hidden');
+            pixApprovedBox.classList.remove('hidden');
+          } else {
+            pixApprovedBox.classList.add('hidden');
+            pixBox.classList.remove('hidden');
+
+            if (order.pixQrCodeBase64 && order.pixQrCode) {
+              if (loadingEl) loadingEl.classList.add('hidden');
+              if (fallbackEl) fallbackEl.classList.add('hidden');
+              if (qrWrapEl) {
+                qrWrapEl.classList.remove('hidden');
+                const qrImg = document.getElementById('track-pix-qr-img');
+                const copyInput = document.getElementById('track-pix-copiacola');
+                if (qrImg) qrImg.src = `data:image/png;base64,${order.pixQrCodeBase64}`;
+                if (copyInput) copyInput.value = order.pixQrCode;
+              }
+            } else if (isGeneratingPixForOrderId === order.id) {
+              if (loadingEl) loadingEl.classList.remove('hidden');
+              if (qrWrapEl) qrWrapEl.classList.add('hidden');
+              if (fallbackEl) fallbackEl.classList.add('hidden');
+            } else {
+              if (loadingEl) loadingEl.classList.add('hidden');
+              if (qrWrapEl) qrWrapEl.classList.add('hidden');
+              if (fallbackEl) {
+                fallbackEl.classList.remove('hidden');
+                const pixKeyEl = document.getElementById('track-pix-key');
+                const errReasonEl = document.getElementById('track-pix-error-reason');
+                if (pixKeyEl) pixKeyEl.innerText = state.settings.pixKey || 'contato@braveburguer.com';
+                if (errReasonEl) {
+                  if (order.pixErrorReason) {
+                    errReasonEl.innerText = order.pixErrorReason;
+                    errReasonEl.classList.remove('hidden');
+                  } else {
+                    errReasonEl.classList.add('hidden');
+                  }
+                }
+              }
+            }
+          }
         } else {
           pixBox.classList.add('hidden');
+          pixApprovedBox.classList.add('hidden');
         }
       }
 
@@ -2236,8 +2479,14 @@
           }, (payload) => {
             if (payload.new) {
               const newStatus = (payload.new.status || 'RECEBIDO').toUpperCase();
+              const newPayStatus = payload.new.payment_status || order.paymentStatus;
               order.status = newStatus;
-              showToast(`Status do pedido alterado para: ${newStatus}`, 'info');
+              order.paymentStatus = newPayStatus;
+              if (newPayStatus === 'approved') {
+                showToast('✅ Pagamento PIX confirmado! Pedido enviado para a brasa!', 'success');
+              } else {
+                showToast(`Status do pedido alterado para: ${newStatus}`, 'info');
+              }
               openTrackModal(order.id);
             }
           })
@@ -2300,7 +2549,7 @@
             <span class="font-display font-bold text-base text-brand-500">R$ ${order.total.toFixed(2).replace('.', ',')}</span>
             <div class="flex items-center gap-2">
               <button onclick="openTrackModal('${order.id}')" class="bg-brand-600/20 hover:bg-brand-600/30 text-brand-400 border border-brand-500/30 text-xs font-bold px-3 py-1.5 rounded-xl transition">
-                Status
+                Status / PIX
               </button>
               <button onclick="reorderItems('${order.id}')" class="bg-zinc-800 hover:bg-zinc-700 text-[#f5ebd6] text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1">
                 <i class="fa-solid fa-rotate-right"></i> Repetir
@@ -2389,6 +2638,7 @@
 
       list.innerHTML = filtered.map(order => {
         const items = order.items || [];
+        const isPixPaid = (order.paymentStatus || '').toLowerCase() === 'approved';
         const itemsHtml = items.length > 0 ? items.map(item => {
           const prodName = item.product ? item.product.name : (item.name || 'Item');
           const adds = item.selectedAdditionals || item.additionals || [];
@@ -2411,10 +2661,15 @@
           <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm space-y-4">
             <!-- Header do Card -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3 flex-wrap">
                 <span class="font-extrabold text-base text-gray-900">#${order.id}</span>
                 <span class="text-xs text-gray-400">${new Date(order.createdAt).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</span>
                 <span class="text-xs font-bold px-2.5 py-1 rounded-full ${getStatusBadgeColor(order.status)}">${order.status}</span>
+                ${order.paymentMethod === 'PIX' ? (
+                  isPixPaid 
+                    ? `<span class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> PIX PAGO (AUTO)</span>`
+                    : `<span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1"><i class="fa-solid fa-clock text-amber-600"></i> AGUARDANDO PIX</span>`
+                ) : ''}
               </div>
 
               <div class="flex items-center gap-3">
@@ -2535,6 +2790,7 @@
       }).join('');
 
       const cashChangeDiff = order.cashChange ? Math.max(0, parseFloat(order.cashChange) - (order.total || 0)) : 0;
+      const isPixPaid = (order.paymentStatus || '').toLowerCase() === 'approved';
 
       const ticketContent = `
         <!DOCTYPE html>
@@ -2570,7 +2826,7 @@
           <div><strong>TEL:</strong> ${order.customerPhone}</div>
           <div><strong>TIPO:</strong> ${order.orderType === 'DELIVERY' ? 'ENTREGA' : 'RETIRADA NO BALCÃO'}</div>
           <div style="font-size: 11px;"><strong>ENDEREÇO:</strong> ${order.address}</div>
-          <div><strong>PAGAMENTO:</strong> ${order.paymentMethod === 'CASH' ? 'DINHEIRO' : order.paymentMethod}</div>
+          <div><strong>PAGAMENTO:</strong> ${order.paymentMethod === 'CASH' ? 'DINHEIRO' : order.paymentMethod} ${order.paymentMethod === 'PIX' ? (isPixPaid ? '(PAGO)' : '(PENDENTE)') : ''}</div>
           ${order.cashChange ? `
             <div style="font-size: 11px; font-weight: bold; background: #eee; padding: 2px 4px; margin-top: 2px;">
               TROCO PARA: R$ ${parseFloat(order.cashChange).toFixed(2).replace('.', ',')}<br>
@@ -3107,9 +3363,9 @@
       let reports = [];
 
       try {
-        const { data, error } = await _supabase.from('products').select('id, name, image').limit(5);
-        if (error) reports.push(`<span class="text-red-600">❌ <strong>Tabela 'products':</strong> ${error.message}</span>`);
-        else reports.push(`<span class="text-emerald-700">✅ <strong>Tabela 'products':</strong> OK (${data.length} itens encontrados)</span>`);
+        const { data, error } = await _supabase.from('orders').select('id, status, payment_status').limit(5);
+        if (error) reports.push(`<span class="text-red-600">❌ <strong>Tabela 'orders':</strong> ${error.message}</span>`);
+        else reports.push(`<span class="text-emerald-700">✅ <strong>Tabela 'orders' + PIX Automático:</strong> OK (${data.length} pedidos encontrados)</span>`);
       } catch(e) {
         reports.push(`<span class="text-red-600">❌ <strong>Tabela 'products':</strong> Falha de rede: ${e.message}</span>`);
       }
