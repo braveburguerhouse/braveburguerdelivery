@@ -1376,7 +1376,7 @@
                   address: o.delivery_address || 'Retirada',
                   orderType: o.delivery_type === 'delivery' ? 'DELIVERY' : 'TAKEOUT',
                   paymentMethod: (o.payment_method || 'PIX').toUpperCase(),
-                  paymentStatus: o.payment_status || (matched ? matched.paymentStatus : 'pending'),
+                  paymentStatus: (o.payment_status && o.payment_status !== 'pending') ? o.payment_status : (matched?.paymentStatus || o.payment_status || 'pending'),
                   mpPaymentId: o.mp_payment_id || (matched ? matched.mpPaymentId : null),
                   pixQrCode: o.pix_qr_code || (matched ? matched.pixQrCode : null),
                   pixQrCodeBase64: o.pix_qr_code_base64 || (matched ? matched.pixQrCodeBase64 : null),
