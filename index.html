@@ -1380,6 +1380,7 @@
                   mpPaymentId: o.mp_payment_id || (matched ? matched.mpPaymentId : null),
                   pixQrCode: o.pix_qr_code || (matched ? matched.pixQrCode : null),
                   pixQrCodeBase64: o.pix_qr_code_base64 || (matched ? matched.pixQrCodeBase64 : null),
+                  pixErrorReason: matched ? matched.pixErrorReason : null,
                   cashChange: o.change_for !== undefined && o.change_for !== null ? o.change_for : (matched ? matched.cashChange : null),
                   items: orderItems,
                   subtotal: parseFloat(o.subtotal || 0),
@@ -2411,19 +2412,19 @@
           if (isPixPaid || statusUpper !== 'RECEBIDO') {
             pixBox.classList.add('hidden');
             pixApprovedBox.classList.remove('hidden');
-          } else {
-            pixApprovedBox.classList.add('hidden');
-            pixBox.classList.remove('hidden');
-
-            if (order.pixQrCodeBase64 && order.pixQrCode) {
+            if (order.pixQrCode || order.pixQrCodeBase64) {
               if (loadingEl) loadingEl.classList.add('hidden');
               if (fallbackEl) fallbackEl.classList.add('hidden');
               if (qrWrapEl) {
                 qrWrapEl.classList.remove('hidden');
                 const qrImg = document.getElementById('track-pix-qr-img');
                 const copyInput = document.getElementById('track-pix-copiacola');
-                if (qrImg) qrImg.src = `data:image/png;base64,${order.pixQrCodeBase64}`;
-                if (copyInput) copyInput.value = order.pixQrCode;
+                if (qrImg) {
+                  qrImg.src = order.pixQrCodeBase64
+                    ? `data:image/png;base64,${order.pixQrCodeBase64}`
+                    : `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(order.pixQrCode)}`;
+                }
+                if (copyInput) copyInput.value = order.pixQrCode || '';
               }
             } else if (isGeneratingPixForOrderId === order.id) {
               if (loadingEl) loadingEl.classList.remove('hidden');
